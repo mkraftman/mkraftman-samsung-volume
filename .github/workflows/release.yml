@@ -1,7 +1,16 @@
-name: Create Release on Tag
+name: Create Release
+
+# Two ways to release:
+#  1. Bump the version in VERSION and push to main (works from sessions that
+#     can push commits but not tags).
+#  2. Push a vX.Y.Z tag (original flow).
 
 on:
   push:
+    branches:
+      - main
+    paths:
+      - 'VERSION'
     tags:
       - 'v*'
 
@@ -14,9 +23,37 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine tag
+        id: tag
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+            echo "create=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          ver="$(tr -d ' \t\r\n' < VERSION)"
+          if [[ ! "$ver" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::VERSION must be X.Y.Z, got '$ver'"
+            exit 1
+          fi
+          tag="v$ver"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+            echo "::notice::$tag already exists; nothing to release"
+            echo "create=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "create=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Create GitHub Release
+        if: steps.tag.outputs.create == 'true'
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: ${{ steps.tag.outputs.tag }}
           files: dist/mkraftman-samsung-volume.js
           generate_release_notes: true

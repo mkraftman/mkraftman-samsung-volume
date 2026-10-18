@@ -46,3 +46,7 @@ entity: media_player.master_bedroom_samsung_83qe83s95fa_oled_tv
 [Mute Icon]  32                  [Vol-] [Vol+]
 [============= SLIDER (full width) =============]
 ```
+
+## Releasing
+
+Bump the version in `VERSION` (e.g. `1.0.1`) and push to `main`. The release workflow creates the matching `vX.Y.Z` tag and GitHub release with `dist/mkraftman-samsung-volume.js` attached. Pushing a `vX.Y.Z` tag directly also still works.
