@@ -1,0 +1,27 @@
+name: Bootstrap v1.0.0 release (one-off)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/bootstrap-release.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create v1.0.0 tag and release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.0
+          target_commitish: 088a5d5dcbfb6cb927dad004635c8a74b810f3d8
+          name: v1.0.0
+          files: dist/mkraftman-samsung-volume.js
+          generate_release_notes: true
